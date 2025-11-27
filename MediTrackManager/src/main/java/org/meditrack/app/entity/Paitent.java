@@ -5,7 +5,6 @@ import org.meditrack.app.util.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Paitent extends Person {
 
