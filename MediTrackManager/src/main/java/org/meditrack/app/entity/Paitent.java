@@ -1,6 +1,7 @@
 package org.meditrack.app.entity;
 
 import org.meditrack.app.enums.GENDER;
+import org.meditrack.app.util.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,8 @@ public class Paitent extends Person {
     public Paitent(String name, int age, String address, String ContactNo, String email, GENDER gender, String bloodGroup,
                    String emergencyContact) {
         super(name, age, address, ContactNo, email, gender);
-        this.paitentId = this.getUniqueID();
-        this.MRN = getUniqueID();
+        this.paitentId = IdGenerator.generateId();
+        this.MRN = IdGenerator.generateId();
         this.emergencyContact = emergencyContact;
         this.knownAllergies = new ArrayList<>();
         this.chronicConditions = new ArrayList<>();
@@ -81,12 +82,6 @@ public class Paitent extends Person {
     }
     public void setGender(GENDER gender) {
         super.setGender(gender);
-    }
-
-    public String getUniqueID()
-    {
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
     }
 
     public String getMRN()

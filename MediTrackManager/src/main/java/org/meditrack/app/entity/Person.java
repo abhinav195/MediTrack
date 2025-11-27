@@ -21,12 +21,6 @@ public abstract class Person {
         this.gender = gender;
     }
 
-    public String getUniqueID()
-    {
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
-    }
-
     public String getName() {
         return name;
     }
