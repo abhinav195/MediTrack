@@ -33,8 +33,8 @@ public class Paitent extends Person {
     public Paitent(Paitent existingPaitent) {
         super(existingPaitent.getPatientName(), existingPaitent.getAge(), existingPaitent.getAddress(),
                 existingPaitent.getContactNo(), existingPaitent.getEmail(), existingPaitent.getGender());
-        this.paitentId = existingPaitent.getUniqueID();
-        this.MRN = existingPaitent.getMRN();
+        this.paitentId = IdGenerator.generateId();
+        this.MRN = IdGenerator.generateId();
         this.emergencyContact = existingPaitent.getEmergencyContact();
         this.knownAllergies = new ArrayList<>(existingPaitent.getKnownAllergies());
         this.chronicConditions = new ArrayList<>(existingPaitent.getChronicConditions());
