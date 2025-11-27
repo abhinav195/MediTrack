@@ -8,15 +8,13 @@ public abstract class Person {
     String address;
     String ContactNo;
     String email;
-    String id;
 
-    public Person(String name, String age, String address, String ContactNo, String email, String id) {
+    public Person(String name, String age, String address, String ContactNo, String email) {
         this.name = name;
         this.age = age;
         this.address = address;
         this.ContactNo = ContactNo;
         this.email = email;
-        this.id = getUniqueID();
     }
 
     public String getUniqueID()
@@ -55,12 +53,5 @@ public abstract class Person {
     public void setEmail(String email) {
         this.email = email;
     }
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
-
 }
 
