@@ -1,20 +1,24 @@
 package org.meditrack.app.entity;
 
+import org.meditrack.app.enums.GENDER;
+
 import java.util.UUID;
 
 public abstract class Person {
     String name;
-    String age;
+    int age;
     String address;
     String ContactNo;
     String email;
+    GENDER gender;
 
-    public Person(String name, String age, String address, String ContactNo, String email) {
+    public Person(String name, int age, String address, String ContactNo, String email, GENDER gender) {
         this.name = name;
         this.age = age;
         this.address = address;
         this.ContactNo = ContactNo;
         this.email = email;
+        this.gender = gender;
     }
 
     public String getUniqueID()
@@ -29,10 +33,10 @@ public abstract class Person {
     public void setName(String name) {
         this.name = name;
     }
-    public String getAge() {
+    public int getAge() {
         return age;
     }
-    public void setAge(String age) {
+    public void setAge(int age) {
         this.age = age;
     }
     public String getAddress() {
@@ -52,6 +56,12 @@ public abstract class Person {
     }
     public void setEmail(String email) {
         this.email = email;
+    }
+    public GENDER getGender() {
+        return gender;
+    }
+    public void setGender(GENDER gender) {
+        this.gender = gender;
     }
 }
 
