@@ -44,7 +44,7 @@ public class PaitentService {
     public void updatePaitent(String MRN, String PaitentObject) throws PaitentNotFoundException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         Paitent updatedPaitent = mapper.readValue(PaitentObject,Paitent.class);
-        Paitent existingPaitent = getPaitent(MRN); // reuse your search logic
+        Paitent existingPaitent = getPaitent(MRN);
 
         // Now update fields — only the ones you want to change
         existingPaitent.setName(updatedPaitent.getName());

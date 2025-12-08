@@ -1,7 +1,9 @@
 package org.meditrack.app.entity;
 
+import lombok.experimental.SuperBuilder;
 import org.meditrack.app.enums.GENDER;
 
+@SuperBuilder
 public abstract class Person {
     String name;
     int age;
