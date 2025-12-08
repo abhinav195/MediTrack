@@ -2,59 +2,81 @@ package org.meditrack.app.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.meditrack.app.entity.Paitent;
-import org.meditrack.app.exceptions.PaitentNotFoundException;
+import org.meditrack.app.entity.Patient;
+import org.meditrack.app.exceptions.PatientNotFoundException;
+import org.meditrack.app.interfaces.Searchable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
-public class PaitentService {
+public class PatientService implements Searchable {
 
-    List<Paitent> paitents;
-    public PaitentService() {
-        paitents = new ArrayList<>();
+    HashSet<Patient> Patients;
+    public PatientService() {
+        Patients = new HashSet<>();
     }
-    public List<Paitent> getPaitents() {
-        return paitents;
+    public HashSet<Patient> getPatients() {
+        return Patients;
     }
-    public void setPaitents(List<Paitent> paitents) {
-        this.paitents = paitents;
-    }
-    public Paitent getPaitent(String MRN) throws PaitentNotFoundException {
-        for (Paitent paitent : paitents) {
-            if(paitent.getMRN().equals(MRN)){
-                return paitent;
-            }
-        }
-        throw new PaitentNotFoundException("Paitent not found with MRN: " + MRN);
-    };
-
-    public void addPaitent(Paitent paitent) {
-        paitents.add(paitent);
+    public void setPatients(HashSet<Patient> Patients) {
+        this.Patients = Patients;
     }
 
-    public void deletePaitent(String MRN) throws PaitentNotFoundException {
+    public void addPatient(Patient Patient) {
+        Patients.add(Patient);
+    }
+
+    public void deletePatient(String MRN) throws PatientNotFoundException {
         try {
-            paitents.remove(getPaitent(MRN));
-        } catch (PaitentNotFoundException e) {
-            throw new PaitentNotFoundException("Paitent with MRN: " + MRN + "does not exist");
+            Patients.remove(SearchById(MRN));
+        } catch (PatientNotFoundException e) {
+            throw new PatientNotFoundException("Patient with MRN: " + MRN + "does not exist");
         }
     }
 
-    public void updatePaitent(String MRN, String PaitentObject) throws PaitentNotFoundException, JsonProcessingException {
+    public void updatePatient(String MRN, String PatientObject) throws PatientNotFoundException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        Paitent updatedPaitent = mapper.readValue(PaitentObject,Paitent.class);
-        Paitent existingPaitent = getPaitent(MRN);
+        Patient updatedPatient = mapper.readValue(PatientObject,Patient.class);
+        Patient existingPatient = SearchById(MRN);
 
         // Now update fields — only the ones you want to change
-        existingPaitent.setName(updatedPaitent.getName());
-        existingPaitent.setAge(updatedPaitent.getAge());
-        existingPaitent.setAddress(updatedPaitent.getAddress() == null ? null : updatedPaitent.getAddress());
-        existingPaitent.setContactNo(updatedPaitent.getContactNo());
-        existingPaitent.setAddress(updatedPaitent.getAddress());
-        existingPaitent.setBloodGroup(updatedPaitent.getBloodGroup());
-        existingPaitent.setKnownAllergies(updatedPaitent.getKnownAllergies());
-        existingPaitent.setChronicConditions(updatedPaitent.getChronicConditions());
-        existingPaitent.setCurrentMedications(updatedPaitent.getCurrentMedications());
+        existingPatient.setName(updatedPatient.getName());
+        existingPatient.setAge(updatedPatient.getAge());
+        existingPatient.setAddress(updatedPatient.getAddress() == null ? null : updatedPatient.getAddress());
+        existingPatient.setContactNo(updatedPatient.getContactNo());
+        existingPatient.setAddress(updatedPatient.getAddress());
+        existingPatient.setBloodGroup(updatedPatient.getBloodGroup());
+        existingPatient.setKnownAllergies(updatedPatient.getKnownAllergies());
+        existingPatient.setChronicConditions(updatedPatient.getChronicConditions());
+        existingPatient.setCurrentMedications(updatedPatient.getCurrentMedications());
+    }
+
+    @Override
+    public Patient SearchByName(String name) throws PatientNotFoundException{
+        for (Patient patient: Patients) {
+            if(patient.getName().equalsIgnoreCase(name)){
+                return patient;
+            }
+        }
+        throw new PatientNotFoundException("Patient with name: " + name + " does not exist");
+    }
+
+    @Override
+    public Patient SearchByAge(int age) throws PatientNotFoundException{
+        for (Patient patient: Patients) {
+            if(patient.getAge() == age){
+                return patient;
+            }
+        }
+        throw new PatientNotFoundException("Patient with age: " + age + " does not exist");
+    }
+
+    @Override
+    public Patient SearchById(String id) throws PatientNotFoundException {
+        for( Patient patient: Patients) {
+            if(patient.getMRN().equalsIgnoreCase(id)){
+                return patient;
+            }
+        }
+        throw new PatientNotFoundException("Patient with MRN: " + id + " does not exist");
     }
 }

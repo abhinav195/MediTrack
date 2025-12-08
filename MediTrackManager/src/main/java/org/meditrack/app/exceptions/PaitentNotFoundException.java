@@ -1,10 +1,11 @@
 package org.meditrack.app.exceptions;
 
-public class PaitentNotFoundException extends Exception {
-    public PaitentNotFoundException() {
-        super();
-    }
-    public PaitentNotFoundException(String message) {
+public class PatientNotFoundException extends PersonNotFoundException {
+    public PatientNotFoundException(String message) {
         super(message);
     }
+    public PatientNotFoundException() {
+        super();
+    }
+
 }

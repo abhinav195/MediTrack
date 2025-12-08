@@ -6,9 +6,9 @@ import org.meditrack.app.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Paitent extends Person {
+public class Patient extends Person {
 
-    String paitentId;
+    String PatientId;
     String MRN;
     String emergencyContact;
     List<String> knownAllergies;
@@ -17,10 +17,10 @@ public class Paitent extends Person {
     List<String> CurrentMedications;
 
 
-    public Paitent(String name, int age, String address, String ContactNo, String email, GENDER gender, String bloodGroup,
+    public Patient(String name, int age, String address, String ContactNo, String email, GENDER gender, String bloodGroup,
                    String emergencyContact) {
         super(name, age, address, ContactNo, email, gender);
-        this.paitentId = IdGenerator.generateId();
+        this.PatientId = IdGenerator.generateId();
         this.MRN = IdGenerator.generateId();
         this.emergencyContact = emergencyContact;
         this.knownAllergies = new ArrayList<>();
@@ -29,16 +29,16 @@ public class Paitent extends Person {
         this.CurrentMedications = new ArrayList<>();
     }
 
-    public Paitent(Paitent existingPaitent) {
-        super(existingPaitent.getPatientName(), existingPaitent.getAge(), existingPaitent.getAddress(),
-                existingPaitent.getContactNo(), existingPaitent.getEmail(), existingPaitent.getGender());
-        this.paitentId = IdGenerator.generateId();
+    public Patient(Patient existingPatient) {
+        super(existingPatient.getPatientName(), existingPatient.getAge(), existingPatient.getAddress(),
+                existingPatient.getContactNo(), existingPatient.getEmail(), existingPatient.getGender());
+        this.PatientId = IdGenerator.generateId();
         this.MRN = IdGenerator.generateId();
-        this.emergencyContact = existingPaitent.getEmergencyContact();
-        this.knownAllergies = new ArrayList<>(existingPaitent.getKnownAllergies());
-        this.chronicConditions = new ArrayList<>(existingPaitent.getChronicConditions());
-        this.bloodGroup = existingPaitent.getBloodGroup();
-        this.CurrentMedications = new ArrayList<>(existingPaitent.getCurrentMedications());
+        this.emergencyContact = existingPatient.getEmergencyContact();
+        this.knownAllergies = new ArrayList<>(existingPatient.getKnownAllergies());
+        this.chronicConditions = new ArrayList<>(existingPatient.getChronicConditions());
+        this.bloodGroup = existingPatient.getBloodGroup();
+        this.CurrentMedications = new ArrayList<>(existingPatient.getCurrentMedications());
     }
 
     public void setPatientName(String patientName) {
