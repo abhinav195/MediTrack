@@ -165,7 +165,7 @@ public class TestRunner {
 
     private static boolean testFullyBookedDoctor() {
         // HACK: Simulate Dr. Busy is unavailable only on Tuesdays (just to test logic)
-        // Ideally we would fill 48 * 30 slots, but that's too slow for manual test.
+        // Ideally we would fill 48 * 10 slots, but that's too slow for manual test.
         // Instead, we create a dummy doctor with NO working days.
 
         Doctor lazyDoc = Doctor.builder().name("Dr. Lazy").doctorType(DoctorType.DENTIST)
