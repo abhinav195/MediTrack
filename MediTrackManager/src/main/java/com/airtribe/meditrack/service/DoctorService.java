@@ -1,13 +1,18 @@
 package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Person;
+import com.airtribe.meditrack.enums.DoctorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.airtribe.meditrack.entity.Doctor;
 import com.airtribe.meditrack.exception.DoctorNotFoundException;
 import com.airtribe.meditrack.interfaces.Searchable;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DoctorService implements Searchable {
     HashSet<Doctor> doctors;
@@ -50,6 +55,33 @@ public class DoctorService implements Searchable {
         } else {
             throw new DoctorNotFoundException("Entity found is not a Doctor.");
         }
+    }
+
+    public boolean isDoctorWorking(String doctorId, LocalDateTime slot) {
+        try {
+            Doctor doc = (Doctor) SearchById(doctorId);
+            if (doc == null) return false;
+
+            // 1. Check Day
+            if (!doc.getAvailableDays().contains(slot.getDayOfWeek())) {
+                return false;
+            }
+
+            // 2. Check Time
+            LocalTime time = slot.toLocalTime();
+            // Assuming 30 min slots, ensures appointment finishes before shift end
+            return !time.isBefore(doc.getAvailableFrom()) &&
+                    !time.plusMinutes(30).isAfter(doc.getAvailableTo());
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public List<Doctor> getDoctorsByType(DoctorType type) {
+        return doctors.stream()
+                .filter(d -> d.getDoctorType() == type)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -24,11 +24,9 @@ public class Appointment implements Serializable {
     @lombok.Builder.Default
     private AppointmentStatus status = AppointmentStatus.CONFIRMED;
 
-    private String consultationType; // e.g. "Consultation", "Follow-up"
-
     @Override
     public String toString() {
-        return "Appointment [ID=" + appointmentId + ", Status=" + status +
-                ", DoctorID=" + doctorId + ", PatientID=" + patientId + "]";
+        return "Appointment [ID=" + appointmentId + ", Time=" + timeSlot +
+                ", Status=" + status + ", Doctor=" + doctorId + ", Patient=" + patientId + "]";
     }
 }

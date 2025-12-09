@@ -1,15 +1,14 @@
 package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Appointment;
+import com.airtribe.meditrack.entity.Doctor;
+import com.airtribe.meditrack.entity.Person;
 import com.airtribe.meditrack.enums.AppointmentStatus;
-import com.airtribe.meditrack.exception.DoctorNotFoundException;
-import com.airtribe.meditrack.exception.PatientNotFoundException;
+import com.airtribe.meditrack.enums.DoctorType;
 import com.airtribe.meditrack.exception.PersonNotFoundException;
+import com.airtribe.meditrack.util.DateUtil;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,111 +17,132 @@ public class AppointmentService {
     private final DoctorService doctorService;
     private final PatientService patientService;
 
-    // Configuration
-    private static final LocalTime START_TIME = LocalTime.of(9, 0);
-    private static final LocalTime END_TIME = LocalTime.of(19, 0);
-    private static final int SLOT_DURATION_MINUTES = 30;
-
     public AppointmentService(DoctorService doctorService, PatientService patientService) {
-        appointments = new ArrayList<>();
         this.doctorService = doctorService;
         this.patientService = patientService;
+        this.appointments  = new ArrayList<>();
     }
 
-    public Appointment bookAppointment(String doctorId, String patientId, LocalDateTime requestedTime, String consultationType) throws Exception {
-        // 1. Validation
-        if (doctorService.SearchById(doctorId) == null) throw new DoctorNotFoundException("Doctor not found: " + doctorId);
-        if (patientService.SearchById(patientId) == null) throw new PatientNotFoundException("Patient not found: " + patientId);
+//    Path 1: Book with specific Doctor (ID) and name
+    public Appointment bookAppointment(String doctorIdentifier, String patientId, LocalDateTime requestedTime) throws Exception {
+        // 1. Resolve Doctor (ID vs Name)
+        Doctor doctor = resolveDoctor(doctorIdentifier);
+        if (doctor == null) {
+            throw new PersonNotFoundException("Doctor not found with ID or Name: " + doctorIdentifier);
+        }
 
-        // 2. Determine Final Time Slot
-        LocalDateTime finalSlot;
+        // 2. Validate Patient
+        if (patientService.SearchById(patientId) == null) {
+            throw new PersonNotFoundException("Patient not found: " + patientId);
+        }
 
-        if (requestedTime != null) {
-            // User requested a specific time
-            if (isSlotAvailable(doctorId, requestedTime)) {
-                finalSlot = requestedTime;
-            } else {
-                System.out.println("Requested slot " + requestedTime + " is unavailable or invalid. Finding closest next slot...");
-                finalSlot = findNextAvailableSlot(doctorId, requestedTime);
+        // 3. Find Slot
+        LocalDateTime finalSlot = resolveTimeSlot(doctor.getId(), requestedTime);
+        if (finalSlot == null) throw new Exception("No slots available for Doctor " + doctor.getName());
+
+        // 4. Create
+        return createAndSaveAppointment(doctor.getId(), patientId, finalSlot);
+    }
+
+    // Helper to find doctor by ID first, then Name
+    private Doctor resolveDoctor(String identifier) {
+        // Try ID
+        try {
+            Person p = doctorService.SearchById(identifier);
+            if (p instanceof Doctor) return (Doctor) p;
+        } catch (Exception e) {
+            // Not found by ID, try Name
+        }
+        // Try Name
+        try {
+            Person p = doctorService.SearchByName(identifier);
+            if (p instanceof Doctor) return (Doctor) p;
+        } catch (Exception e) {
+            // Not found by Name either
+        }
+
+        return null;
+    }
+
+//  Path 2: Book by Doctor Type (Finds earliest available doctor)
+    public Appointment bookAppointmentByType(DoctorType type, String patientId, LocalDateTime requestedTime) throws Exception {
+
+        if (patientService.SearchById(patientId) == null) throw new PersonNotFoundException("Patient not found: " + patientId);
+
+        // 1. Get Candidates
+        List<Doctor> candidates = doctorService.getDoctorsByType(type);
+        if (candidates.isEmpty()) throw new Exception("No doctors found for specialization: " + type);
+
+        // 2. Find Winner (Earliest Slot)
+        Doctor bestDoctor = null;
+        LocalDateTime bestSlot = null;
+
+        // If user didn't request a time, start searching from NOW
+        LocalDateTime searchStart = (requestedTime != null) ? requestedTime : LocalDateTime.now();
+
+        for (Doctor doc : candidates) {
+            LocalDateTime slot = findNextAvailableSlot(doc.getId(), searchStart);
+            if (slot != null) {
+                // If we found a slot, checks if it's better (sooner) than current best
+                if (bestSlot == null || slot.isBefore(bestSlot)) {
+                    bestSlot = slot;
+                    bestDoctor = doc;
+                }
             }
-        } else {
-            // Auto-assign: Start searching from NOW (or next working start)
-            finalSlot = findNextAvailableSlot(doctorId, LocalDateTime.now());
         }
 
-        if (finalSlot == null) {
-            throw new Exception("No available slots found for Doctor in the near future.");
-        }
+        if (bestDoctor == null) throw new Exception("No available slots found for any " + type);
 
-        // 3. Create Appointment
+        System.out.println("Auto-Matched Doctor: " + bestDoctor.getName());
+
+        // Create
+        return createAndSaveAppointment(bestDoctor.getId(), patientId, bestSlot);
+    }
+
+    // --- Helpers ---
+    private Appointment createAndSaveAppointment(String docId, String patId, LocalDateTime slot) {
         Appointment appointment = Appointment.builder()
-                .doctorId(doctorId)
-                .patientId(patientId)
-                .timeSlot(finalSlot)
-                .consultationType(consultationType)
+                .doctorId(docId)
+                .patientId(patId)
+                .timeSlot(slot)
                 .status(AppointmentStatus.CONFIRMED)
                 .build();
-
         appointments.add(appointment);
-        System.out.println("Appointment booked: " + appointment.getAppointmentId() + " at " + finalSlot);
+        System.out.println("Appointment Booked: " + appointment.getAppointmentId() + " at " + DateUtil.format(slot));
         return appointment;
     }
 
-//    Checks if a slot is within working hours (Mon-Fri, 9-7) AND not overlapping with existing appointments.
+    private LocalDateTime resolveTimeSlot(String doctorId, LocalDateTime requestedTime) {
+        if (requestedTime != null) {
+            if (isSlotAvailable(doctorId, requestedTime)) return requestedTime;
+            System.out.println("Requested slot unavailable. Searching next...");
+            return findNextAvailableSlot(doctorId, requestedTime);
+        }
+        return findNextAvailableSlot(doctorId, LocalDateTime.now());
+    }
+
+    private LocalDateTime findNextAvailableSlot(String doctorId, LocalDateTime fromTime) {
+        if (fromTime.isBefore(LocalDateTime.now())) fromTime = LocalDateTime.now();
+        LocalDateTime candidate = DateUtil.roundToNextSlot(fromTime);
+
+        for (int i = 0; i < 48 * 10; i++) { // Search 10 days
+            if (isSlotAvailable(doctorId, candidate)) return candidate;
+            candidate = candidate.plusMinutes(DateUtil.SLOT_DURATION_MINUTES);
+        }
+        return null;
+    }
+
     private boolean isSlotAvailable(String doctorId, LocalDateTime slot) {
-        // A. Check Working Hours / Days
-        DayOfWeek day = slot.getDayOfWeek();
-        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) return false;
+        if (!doctorService.isDoctorWorking(doctorId, slot)) return false;
 
-        LocalTime time = slot.toLocalTime();
-        if (time.isBefore(START_TIME) || time.isAfter(END_TIME.minusMinutes(SLOT_DURATION_MINUTES))) return false;
-
-        // B. Check Overlap with existing CONFIRMED appointments - assuming fixed 30min slots for simplicity
         return appointments.stream()
                 .filter(a -> a.getDoctorId().equals(doctorId))
                 .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED)
                 .noneMatch(a -> a.getTimeSlot().isEqual(slot));
     }
 
-//  Finds the next available 30-min slot.
-    private LocalDateTime findNextAvailableSlot(String doctorId, LocalDateTime fromTime) {
-        if (fromTime.isBefore(LocalDateTime.now())) {
-            fromTime = LocalDateTime.now();
-        }
-
-        LocalDateTime candidate = fromTime.truncatedTo(ChronoUnit.MINUTES);
-
-        int minute = candidate.getMinute();
-        if (minute > 0 && minute < 30) candidate = candidate.withMinute(30);
-        else if (minute > 30) candidate = candidate.plusHours(1).withMinute(0);
-
-        // Searching for next 10 days
-        for (int i = 0; i < 48 * 10; i++) { // 48 slots per day * 10 days
-            if (isSlotAvailable(doctorId, candidate)) {
-                return candidate;
-            }
-            candidate = candidate.plusMinutes(SLOT_DURATION_MINUTES);
-        }
-        return null; // Should not happen unless completely booked for 10 days
-    }
-
-
-    public void cancelAppointment(String appointmentId) throws Exception {
-        Appointment appointment = getAppointmentById(appointmentId);
-        appointment.setStatus(AppointmentStatus.CANCELLED);
-    }
-
-    public Appointment getAppointmentById(String id) throws Exception {
-        return appointments
-                .stream()
-                .filter(
-                        a -> a.getAppointmentId()
-                                .equals(id)
-                ).findFirst()
-                .orElse(null);
-    }
-
-    public List<Appointment> getAllAppointments() {
-        return new ArrayList<>(appointments);
+    public List<Appointment> getAllAppointments() { return new ArrayList<>(appointments); }
+    public Appointment getAppointmentById(String id) {
+        return appointments.stream().filter(a->a.getAppointmentId().equals(id)).findFirst().orElse(null);
     }
 }

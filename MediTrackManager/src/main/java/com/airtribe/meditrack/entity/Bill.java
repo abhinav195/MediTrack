@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bill {
-    @Builder.Default
+    @lombok.Builder.Default
     private String billId = IdGenerator.generateId();
 
     private String appointmentId;

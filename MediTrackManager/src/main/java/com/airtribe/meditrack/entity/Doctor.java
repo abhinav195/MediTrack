@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,9 +26,15 @@ public class Doctor extends Person {
     private LocalTime availableFrom;
     private LocalTime availableTo;
 
+    @lombok.Builder.Default
+    private List<DayOfWeek> availableDays = Arrays.asList(
+            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY
+    );
+
     @Override
     public String toString() {
         return "Doctor [ID=" + getId() + ", Name=" + getName() +
-                ", Type=" + doctorType + "]";
+                ", Type=" + doctorType + ", Hours=" + availableFrom + "-" + availableTo + "]";
     }
 }
