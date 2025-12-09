@@ -1,4 +1,4 @@
-package org.meditrack.app.exceptions;
+package com.airtribe.meditrack.exception;
 
 public class DoctorNotFoundException extends PersonNotFoundException {
     public DoctorNotFoundException(String message) {
@@ -7,5 +7,4 @@ public class DoctorNotFoundException extends PersonNotFoundException {
     public DoctorNotFoundException() {
         super();
     }
-
 }

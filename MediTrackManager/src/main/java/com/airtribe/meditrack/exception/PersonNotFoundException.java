@@ -1,4 +1,4 @@
-package org.meditrack.app.exceptions;
+package com.airtribe.meditrack.exception;
 
 public class PersonNotFoundException extends Exception {
     public PersonNotFoundException() {

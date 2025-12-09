@@ -1,0 +1,15 @@
+package com.airtribe.meditrack.enums;
+
+public enum DoctorType {
+    DERMATOLOGIST,
+    GASTROENTEROLOGIST,
+    PULMONOLOGIST,
+    OTOLARYNGOLOGIST,
+    UROLOGIST,
+    MAXILLOFACIAL,
+    NEUROLOGIST,
+    CARDIOLOGIST,
+    DENTIST,
+    PATHOLOGIST,
+    RHEUMATOLOGIST
+}

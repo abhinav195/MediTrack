@@ -1,4 +1,4 @@
-package org.meditrack.app.enums;
+package com.airtribe.meditrack.enums;
 
 public enum GENDER {
     MALE,

@@ -1,4 +1,4 @@
-package org.meditrack.app.util;
+package com.airtribe.meditrack.util;
 
 import java.util.UUID;
 
