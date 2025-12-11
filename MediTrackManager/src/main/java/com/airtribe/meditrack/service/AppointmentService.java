@@ -5,6 +5,8 @@ import com.airtribe.meditrack.entity.Doctor;
 import com.airtribe.meditrack.entity.Person;
 import com.airtribe.meditrack.enums.AppointmentStatus;
 import com.airtribe.meditrack.enums.DoctorType;
+import com.airtribe.meditrack.exception.AppointmentNotFoundException;
+import com.airtribe.meditrack.exception.DoctorNotFoundException;
 import com.airtribe.meditrack.exception.PersonNotFoundException;
 import com.airtribe.meditrack.util.DateUtil;
 
@@ -45,20 +47,20 @@ public class AppointmentService {
     }
 
     // Helper to find doctor by ID first, then Name
-    private Doctor resolveDoctor(String identifier) {
+    private Doctor resolveDoctor(String identifier) throws DoctorNotFoundException {
         // Try ID
         try {
             Person p = doctorService.SearchById(identifier);
             if (p instanceof Doctor) return (Doctor) p;
         } catch (Exception e) {
-            // Not found by ID, try Name
+            throw new DoctorNotFoundException("Doctor not found with ID: " + identifier + " try with name now.");
         }
         // Try Name
         try {
             Person p = doctorService.SearchByName(identifier);
             if (p instanceof Doctor) return (Doctor) p;
         } catch (Exception e) {
-            // Not found by Name either
+            throw new DoctorNotFoundException("Doctor not found with Name: " + identifier);
         }
 
         return null;
@@ -73,7 +75,7 @@ public class AppointmentService {
         List<Doctor> candidates = doctorService.getDoctorsByType(type);
         if (candidates.isEmpty()) throw new Exception("No doctors found for specialization: " + type);
 
-        // 2. Find Winner (Earliest Slot)
+        // 2. Earliest Slot
         Doctor bestDoctor = null;
         LocalDateTime bestSlot = null;
 
@@ -142,7 +144,10 @@ public class AppointmentService {
     }
 
     public List<Appointment> getAllAppointments() { return new ArrayList<>(appointments); }
-    public Appointment getAppointmentById(String id) {
-        return appointments.stream().filter(a->a.getAppointmentId().equals(id)).findFirst().orElse(null);
+    public Appointment getAppointmentById(String id) throws AppointmentNotFoundException {
+        return appointments.stream()
+                .filter(a->a.getAppointmentId().equals(id)).
+                findFirst().
+                orElseThrow(() -> new AppointmentNotFoundException("Appointment with ID " + id + " not found."));
     }
 }
