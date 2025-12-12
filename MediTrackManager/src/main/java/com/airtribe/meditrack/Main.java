@@ -5,13 +5,10 @@ import com.airtribe.meditrack.enums.DoctorType;
 import com.airtribe.meditrack.service.AppointmentService;
 import com.airtribe.meditrack.service.DoctorService;
 import com.airtribe.meditrack.service.PatientService;
-import com.airtribe.meditrack.util.DataStore;
-import com.airtribe.meditrack.util.SeedData; // Import the new class
-import com.airtribe.meditrack.util.DateUtil;
+import com.airtribe.meditrack.util.SeedData;
+import com.airtribe.meditrack.util.Validator;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Scanner;
 
 public class Main {
@@ -21,117 +18,125 @@ public class Main {
     private static final AppointmentService appointmentService = new AppointmentService(doctorService, patientService);
 
     public static void main(String[] args) {
-        try {
-            // 1. Load Seed Data from external class
-            SeedData.load(doctorService, patientService, appointmentService);
+        System.out.println("Initializing MediTrack System...");
 
-            // 2. Main Menu Loop
-            boolean running = true;
-            while (running) {
-                System.out.println("\n=== MediTrack Management System ===");
-                System.out.println("1. Patient Management (Add/View)");
-                System.out.println("2. Doctor Management (Add/View)");
-                System.out.println("3. Book Appointment (New!)");
-                System.out.println("4. View All Appointments");
-                System.out.println("5. Exit");
-                System.out.print("Enter choice: ");
+        // 1. Load Seed Data
+        SeedData.load(doctorService, patientService);
+        System.out.println("Seed Data Loaded Successfully.");
 
-                try {
-                    int choice = scanner.nextInt();
+        // 2. Main Menu Loop
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== MediTrack Management System ===");
+            System.out.println("1.  [PATIENT] View All Patients");
+            System.out.println("2.  [DOCTOR]  View All Doctors");
+            System.out.println("3.  [BOOK]    Smart Booking (ID/Name/Symptom)");
+            System.out.println("4.  [BOOK]    Auto-Match (Find Earliest by Type)");
+            System.out.println("5.  [ADMIN]   View All Appointments");
+            System.out.println("6.  Exit");
+            System.out.print(">> Enter choice: ");
+
+            try {
+                if (!scanner.hasNextInt()) {
+                    System.out.println("Invalid input. Please enter a number.");
                     scanner.nextLine();
-
-                    switch (choice) {
-                        case 1:
-                            handlePatientMenu();
-                            break;
-                        case 2:
-                            handleDoctorMenu();
-                            break;
-                        case 3:
-                            handleBooking();
-                            break;
-                        case 4:
-                            System.out.println(appointmentService.getAllAppointments());
-                            break;
-                        case 5:
-                            running = false;
-                            break;
-                        default:
-                            System.out.println("Invalid choice.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
-                    scanner.nextLine(); // Clear buffer if scanner crashed
+                    continue;
                 }
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // consume newline
+
+                switch (choice) {
+                    case 1:
+                        printHeader("ALL PATIENTS");
+                        patientService.getPatients().forEach(p -> System.out.println(p.getName() + " (MRN: " + p.getMrn() + ")"));
+                        break;
+                    case 2:
+                        printHeader("ALL DOCTORS");
+                        doctorService.getDoctors().forEach(d -> System.out.println(d.getName() + " [" + d.getDoctorType() + "] ID: " + d.getId()));
+                        break;
+                    case 3:
+                        handleSmartBooking();
+                        break;
+                    case 4:
+                        handleAutoMatchBooking();
+                        break;
+                    case 5:
+                        printHeader("APPOINTMENTS");
+                        appointmentService.getAllAppointments().forEach(System.out::println);
+                        break;
+                    case 6:
+                        running = false;
+                        System.out.println("Exiting System. Goodbye!");
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Try 1-6.");
+                }
+            } catch (Exception e) {
+                System.out.println("CRITICAL ERROR: " + e.getMessage());
+                e.printStackTrace();
             }
-        }
-        catch (Exception e) {
-            System.out.println("Runtime Error in Main: " + e.getMessage() + " StackTrace: " + Arrays.toString(e.getStackTrace()));
-        }
-        finally{
-            doctorService.persistData();
-            patientService.persistData();
-            appointmentService.persistData();
-            scanner.close();
         }
     }
 
-    private static void handleBooking() {
-        System.out.println("\n--- Book Appointment ---");
-        System.out.println("1. Book by Doctor ID or Name");
-        System.out.println("2. Auto-Match by Specialization");
-        System.out.print("3. Return to Main Menu: ");
-        System.out.print("Choice: ");
-        int choice = scanner.nextInt(); scanner.nextLine();
+    // --- Scenario 1: Smart Booking  ---
+    private static void handleSmartBooking() {
+        printHeader("SMART BOOKING");
+        System.out.println("You can enter a Doctor's Name, ID, or even a SYMPTOM (e.g., 'heart pain').");
 
-        System.out.print("Enter Patient ID (MRN): ");
+        System.out.print("Enter Patient MRN: ");
         String patId = scanner.nextLine();
 
-        System.out.print("Enter Time (yyyy-MM-dd HH:mm) [Leave empty for Auto]: ");
+        System.out.print("Enter Doctor Name/ID/Symptom: ");
+        String identifier = scanner.nextLine();
+
+        System.out.print("Enter Preferred Time (yyyy-MM-dd HH:mm) [Press ENTER for Earliest Slot]: ");
         String timeStr = scanner.nextLine();
-        LocalDateTime reqTime = LocalDateTime.now();
-        if (!timeStr.trim().isEmpty()) {
-            reqTime = DateUtil.parse(timeStr);
-        }
-        Appointment appointment = null;
-        DataStore<Appointment> appointmentStore = new DataStore<>();
 
         try {
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter Doctor Name or ID: ");
-                    String docInput = scanner.nextLine();
-                    appointment = appointmentService.bookAppointment(docInput, patId, reqTime);
-                    appointmentStore = new DataStore<>();
-                    appointmentStore.save(new HashSet<>(Arrays.asList(appointment)));
-
-                case 2:
-                    System.out.println("Types: ");
-                    for (DoctorType dt : DoctorType.values()) System.out.print(dt + " ");
-                    System.out.print("\nEnter Type: ");
-                    String typeStr = scanner.nextLine().toUpperCase();
-                    DoctorType type = DoctorType.valueOf(typeStr);
-                    appointment = appointmentService.bookAppointmentByType(type, patId, reqTime);
-                    appointmentStore.save(new HashSet<>(Arrays.asList(appointment)));
-
-                case 3:
-                    return ;
+            LocalDateTime reqTime = null;
+            if (Validator.isNonEmpty(timeStr)) {
+                // You need to implement parse in DateUtil or use LocalDateTime.parse
+                // For safety here, let's assume standard ISO or handle format
+                reqTime = LocalDateTime.parse(timeStr.replace(" ", "T"));
             }
 
+            Appointment app = appointmentService.bookAppointment(identifier, patId, reqTime);
+            System.out.println("✅ SUCCESS! Appointment Confirmed: " + app.getAppointmentId());
+            System.out.println("   Doctor: " + app.getDoctorId());
+            System.out.println("   Time:   " + app.getTimeSlot());
+
         } catch (Exception e) {
-            System.out.println("Booking Failed: " + e.getMessage());
+            System.out.println("❌ BOOKING FAILED: " + e.getMessage());
         }
     }
 
-    private static void handlePatientMenu() {
-        System.out.println("1. Add Patient\n2. View All");
-        int c = scanner.nextInt(); scanner.nextLine();
-        if (c == 2) System.out.println(patientService.getPatients());
+    // --- Scenario 2: Auto-Match by Type ---
+    private static void handleAutoMatchBooking() {
+        printHeader("AUTO-MATCH BOOKING");
+        System.out.println("We will find the earliest available doctor for your need.");
+
+        System.out.print("Enter Patient MRN: ");
+        String patId = scanner.nextLine();
+
+        System.out.println("Available Types: CARDIOLOGIST, DERMATOLOGIST, GENERAL_PRACTITIONER, etc.");
+        System.out.print("Enter Specialist Type: ");
+        String typeStr = scanner.nextLine().toUpperCase();
+
+        try {
+            DoctorType type = DoctorType.valueOf(typeStr);
+            Appointment app = appointmentService.bookAppointmentByType(type, patId, null);
+
+            System.out.println("✅ AUTO-MATCH SUCCESS! Assigned to Dr. " + app.getDoctorId());
+            System.out.println("   Time Slot: " + app.getTimeSlot());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ Invalid Doctor Type entered.");
+        } catch (Exception e) {
+            System.out.println("❌ BOOKING FAILED: " + e.getMessage());
+        }
     }
 
-    private static void handleDoctorMenu() {
-        System.out.println("1. Add Doctor\n2. View All");
-        int c = scanner.nextInt(); scanner.nextLine();
-        if (c == 2) System.out.println(doctorService.getDoctors());
+    private static void printHeader(String title) {
+        System.out.println("\n---------------- " + title + " ----------------");
     }
 }

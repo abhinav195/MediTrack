@@ -45,17 +45,17 @@ public class Bill {
     }
 
     public BillSummary generateBillSummary() {
-//        return BillSummary.builder()
-//                .billId(this.billId)
-//                .appointmentId(this.appointment.getAppointmentId())
-//                .consultationFee(this.consultationFee)
-//                .medicationCost(this.medicationCost)
-//                .taxRate(this.taxRate)
-//                .totalAmount(this.totalAmount)
-//                .isPaid(this.isPaid)
-//                .createdAt(this.createdAt)
-//                .updatedAt(this.updatedAt)
-//                .build();
-        return null;
+        return BillSummary.builder()
+                .billId(this.billId)
+                .appointmentId(this.appointment.getAppointmentId())
+                .consultationFee(this.consultationFee)
+                .medicationCost(this.medicationCost)
+                .taxRate(this.taxRate)
+                .totalAmount(this.totalAmount)
+                .isPaid(this.isPaid)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
+                .build();
+//        return null;
     }
 }
