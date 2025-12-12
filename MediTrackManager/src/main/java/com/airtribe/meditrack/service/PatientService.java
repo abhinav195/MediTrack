@@ -1,6 +1,8 @@
 package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Person;
+import com.airtribe.meditrack.exception.InvalidDataException;
+import com.airtribe.meditrack.util.Validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.airtribe.meditrack.entity.Patient;
@@ -10,25 +12,26 @@ import com.airtribe.meditrack.interfaces.Searchable;
 import java.util.HashSet;
 
 public class PatientService implements Searchable {
-
     HashSet<Patient> Patients;
-
     public PatientService() {
         Patients = new HashSet<>();
     }
-
     public HashSet<Patient> getPatients() {
         return Patients;
     }
-
     public void setPatients(HashSet<Patient> Patients) {
+        if (Patients != null) {
+            for (Patient p : Patients) {
+                Validator.validatePatient(p);
+            }
+        }
         this.Patients = Patients;
     }
-
     public void addPatient(Patient Patient) {
+        Validator.validatePatient(Patient);
+
         Patients.add(Patient);
     }
-
     public void deletePatient(String MRN) throws PatientNotFoundException {
 
         Person p = SearchById(MRN);
@@ -38,14 +41,12 @@ public class PatientService implements Searchable {
             throw new PatientNotFoundException("Patient with MRN: " + MRN + " does not exist");
         }
     }
-
     public void updatePatient(String MRN, String PatientObject) throws PatientNotFoundException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         Patient updatedPatient = mapper.readValue(PatientObject, Patient.class);
-
         Person patientInstance = SearchById(MRN);
-
         if (patientInstance instanceof Patient patient) {
+            Validator.validatePatient(updatedPatient);
 
             patient.setName(updatedPatient.getName());
             patient.setAge(updatedPatient.getAge());
@@ -58,7 +59,6 @@ public class PatientService implements Searchable {
             patient.setCurrentMedications(updatedPatient.getCurrentMedications());
         }
     }
-
     @Override
     public Person SearchByName(String name) throws PatientNotFoundException {
         for (Patient patient : Patients) {
@@ -68,7 +68,6 @@ public class PatientService implements Searchable {
         }
         throw new PatientNotFoundException("Patient with name: " + name + " does not exist");
     }
-
     @Override
     public Person SearchByAge(int age) throws PatientNotFoundException {
         for (Patient patient : Patients) {
@@ -78,9 +77,11 @@ public class PatientService implements Searchable {
         }
         throw new PatientNotFoundException("Patient with age: " + age + " does not exist");
     }
-
     @Override
     public Person SearchById(String mrnId) throws PatientNotFoundException {
+        if (!Validator.isValidMRN(mrnId)) {
+            throw new InvalidDataException("Invalid MRN format. MRN must be 6–12 alphanumeric characters.");
+        }
         for (Patient patient : Patients) {
             if (patient.getMrn().equalsIgnoreCase(mrnId)) {
                 return patient;
