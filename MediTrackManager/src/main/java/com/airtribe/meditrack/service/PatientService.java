@@ -1,6 +1,8 @@
 package com.airtribe.meditrack.service;
 
+import com.airtribe.meditrack.entity.Doctor;
 import com.airtribe.meditrack.entity.Person;
+import com.airtribe.meditrack.util.DataStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.airtribe.meditrack.entity.Patient;
@@ -11,29 +13,29 @@ import java.util.HashSet;
 
 public class PatientService implements Searchable {
 
-    HashSet<Patient> Patients;
+    HashSet<Patient> patients;
 
     public PatientService() {
-        Patients = new HashSet<>();
+        patients = new HashSet<>();
     }
 
     public HashSet<Patient> getPatients() {
-        return Patients;
+        return patients;
     }
 
     public void setPatients(HashSet<Patient> Patients) {
-        this.Patients = Patients;
+        this.patients = Patients;
     }
 
     public void addPatient(Patient Patient) {
-        Patients.add(Patient);
+        patients.add(Patient);
     }
 
     public void deletePatient(String MRN) throws PatientNotFoundException {
 
         Person p = SearchById(MRN);
         if (p != null) {
-            Patients.remove(p);
+            patients.remove(p);
         } else {
             throw new PatientNotFoundException("Patient with MRN: " + MRN + " does not exist");
         }
@@ -61,7 +63,7 @@ public class PatientService implements Searchable {
 
     @Override
     public Person SearchByName(String name) throws PatientNotFoundException {
-        for (Patient patient : Patients) {
+        for (Patient patient : patients) {
             if (patient.getName().equalsIgnoreCase(name)) {
                 return patient;
             }
@@ -71,7 +73,7 @@ public class PatientService implements Searchable {
 
     @Override
     public Person SearchByAge(int age) throws PatientNotFoundException {
-        for (Patient patient : Patients) {
+        for (Patient patient : patients) {
             if (patient.getAge() == age) {
                 return patient;
             }
@@ -81,11 +83,21 @@ public class PatientService implements Searchable {
 
     @Override
     public Person SearchById(String mrnId) throws PatientNotFoundException {
-        for (Patient patient : Patients) {
+        for (Patient patient : patients) {
             if (patient.getMrn().equalsIgnoreCase(mrnId)) {
                 return patient;
             }
         }
         throw new PatientNotFoundException("Patient with MRN: " + mrnId + " does not exist");
+    }
+
+    public void persistData() {
+        try{
+            DataStore<Patient> dataStore = new DataStore<>();
+            dataStore.save(patients);
+        } catch (Exception e){
+            System.out.println("Error persisting patients data: " + e.getMessage());
+        }
+
     }
 }

@@ -2,27 +2,30 @@ package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Appointment;
 import com.airtribe.meditrack.entity.Doctor;
+import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.entity.Person;
 import com.airtribe.meditrack.enums.AppointmentStatus;
 import com.airtribe.meditrack.enums.DoctorType;
 import com.airtribe.meditrack.exception.AppointmentNotFoundException;
 import com.airtribe.meditrack.exception.DoctorNotFoundException;
 import com.airtribe.meditrack.exception.PersonNotFoundException;
+import com.airtribe.meditrack.util.DataStore;
 import com.airtribe.meditrack.util.DateUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class AppointmentService {
-    private List<Appointment> appointments;
+    private HashSet<Appointment> appointments;
     private final DoctorService doctorService;
     private final PatientService patientService;
 
     public AppointmentService(DoctorService doctorService, PatientService patientService) {
         this.doctorService = doctorService;
         this.patientService = patientService;
-        this.appointments  = new ArrayList<>();
+        this.appointments  = new HashSet<>();
     }
 
 //    Path 1: Book with specific Doctor (ID) and name
@@ -149,5 +152,18 @@ public class AppointmentService {
                 .filter(a->a.getAppointmentId().equals(id)).
                 findFirst().
                 orElseThrow(() -> new AppointmentNotFoundException("Appointment with ID " + id + " not found."));
+    }
+
+    public void setAppointments(HashSet<Appointment> appointments) {
+        this.appointments=appointments;
+    }
+
+    public void persistData() {
+        try{
+            DataStore<Appointment> dataStore = new DataStore<>();
+            dataStore.save(appointments);
+        } catch (Exception e){
+            System.out.println("Error persisting appointments data: " + e.getMessage());
+        }
     }
 }

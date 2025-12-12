@@ -1,18 +1,39 @@
 package com.airtribe.meditrack.util;
 
+import com.airtribe.meditrack.entity.Appointment;
 import com.airtribe.meditrack.entity.Doctor;
 import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.enums.DoctorType;
 import com.airtribe.meditrack.enums.GENDER;
+import com.airtribe.meditrack.service.AppointmentService;
 import com.airtribe.meditrack.service.DoctorService;
 import com.airtribe.meditrack.service.PatientService;
 
+import java.io.IOException;
 import java.time.LocalTime;
+import java.util.HashSet;
 
 public class SeedData {
 
-    public static void load(DoctorService ds, PatientService ps) {
+    public static void load(DoctorService ds, PatientService ps, AppointmentService as) throws IOException {
         System.out.println("--- Seeding Data ---");
+        HashSet<Doctor> doctors = DataStore.loadDoctors();
+        HashSet<Patient> patients = DataStore.loadPatients();
+        HashSet<Appointment> appointments = DataStore.loadAppointments();
+
+        if(!doctors.isEmpty()){
+            ds.setDoctors(doctors);
+            if(!patients.isEmpty()){
+                ps.setPatients(patients);
+                if(!appointments.isEmpty()){
+                    as.setAppointments(appointments);
+                }
+            }
+            return;
+        }
+
+        // Proceed with data creation if no data found in CSVs
+
 
         // --- DOCTORS ---
 

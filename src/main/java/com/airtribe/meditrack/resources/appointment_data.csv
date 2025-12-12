@@ -1,0 +1,2 @@
+appointmentId,doctorId,patientId,timeSlot,status
+5bae2670-9913-4ff2-8aab-066298c29c92,c775f151-fbef-4b4d-b40b-e164baf0c010,MRN-001,2025-12-11T23:30:00,CONFIRMED

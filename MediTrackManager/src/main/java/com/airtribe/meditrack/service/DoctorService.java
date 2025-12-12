@@ -2,6 +2,7 @@ package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Person;
 import com.airtribe.meditrack.enums.DoctorType;
+import com.airtribe.meditrack.util.DataStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.airtribe.meditrack.entity.Doctor;
@@ -109,5 +110,15 @@ public class DoctorService implements Searchable {
                 return doctor;
         }
         throw new DoctorNotFoundException("Doctor with id: " + id + " does not exist");
+    }
+
+    public void persistData() {
+        try{
+            DataStore<Doctor> dataStore = new DataStore<>();
+            dataStore.save(doctors);
+        } catch (Exception e){
+            System.out.println("Error persisting Doctor data: " + e.getMessage());
+        }
+
     }
 }
