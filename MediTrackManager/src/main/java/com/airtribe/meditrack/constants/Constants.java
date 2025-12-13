@@ -1,10 +1,17 @@
 package com.airtribe.meditrack.constants;
 
+import java.io.File;
+
+import static com.airtribe.meditrack.util.CSVUtil.getResourceDirectory;
+
 public class Constants {
-    public static final String DOCTOR_CSV = "data/doctors.csv";
-    public static final String PATIENT_CSV = "data/patients.csv";
-    public static final String APPOINTMENT_CSV = "data/appointments.csv";
-    public static final String BILL_CSV = "data/bills.csv";
+    // In Constants.java
+    private static final String RESOURCE_DIR = getResourceDirectory(); // Now returns ".../MediTrackManager/data"
+    public static final String DOCTOR_CSV = RESOURCE_DIR + File.separator + "doctor_data.csv";
+    public static final String PATIENT_CSV = RESOURCE_DIR + File.separator + "patient_data.csv";
+    public static final String APPOINTMENT_CSV = RESOURCE_DIR + File.separator + "appointment_data.csv";
+// verify if you have bill_data.csv defined here too
+
 
     public static final double TAX_RATE = 0.18;
 

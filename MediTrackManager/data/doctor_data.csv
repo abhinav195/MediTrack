@@ -1,0 +1,4 @@
+id,name,age,address,contactNumber,email,gender,doctorType,qualification,yearsOfExperience,opdRoom,availableFrom,availableTo,availableDays
+DOCSAVE,Dr. Saved,30,Cloud,1231231234,save@test.com,FEMALE,CARDIOLOGIST,MBBS,5,999,00:00:00,23:59:59.999999999,MONDAY
+DOC0001,Dr. House,50,221B Baker St,1112223333,house@test.com,MALE,GENERAL_PRACTITIONER,MD,20,101,09:00:00,17:00:00,MONDAY;WEDNESDAY;FRIDAY
+DOC002,Dr. Heart,45,Hosp A,5551234567,h@h.com,MALE,CARDIOLOGIST,MBBS,10,202,09:00:00,17:00:00,MONDAY

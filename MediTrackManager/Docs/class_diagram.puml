@@ -1,0 +1,146 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "com.airtribe.meditrack.entity" {
+  abstract class Person {
+    -String id
+    -String name
+    -int age
+    -GENDER gender
+    -String contactNumber
+    -String email
+    -String address
+    +getId() : String
+    +getName() : String
+  }
+
+  class Doctor {
+    -DoctorType doctorType
+    -String qualification
+    -int yearsOfExperience
+    -String opdRoom
+    -LocalTime availableFrom
+    -LocalTime availableTo
+    -List<DayOfWeek> availableDays
+    +isAvailable(LocalDateTime) : boolean
+  }
+
+  class Patient {
+    -String mrn
+    -String emergencyContact
+    -String bloodGroup
+    -List<String> knownAllergies
+    -List<String> chronicConditions
+    -List<String> currentMedications
+  }
+
+  class Appointment {
+    -String appointmentId
+    -String doctorId
+    -String patientId
+    -LocalDateTime timeSlot
+    -AppointmentStatus status
+  }
+
+  enum DoctorType {
+    CARDIOLOGIST
+    DERMATOLOGIST
+    GENERAL_PRACTITIONER
+    NEUROLOGIST
+    ...
+  }
+
+  enum AppointmentStatus {
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+  }
+}
+
+package "com.airtribe.meditrack.service" {
+  class DoctorService {
+    -Map<String, Doctor> doctors
+    +addDoctor(Doctor) : void
+    +SearchById(String) : Person
+    +getDoctors() : List<Doctor>
+    +isDoctorWorking(String, LocalDateTime) : boolean
+  }
+
+  class PatientService {
+    -Map<String, Patient> patients
+    +addPatient(Patient) : void
+    +SearchById(String) : Person
+    +getPatients() : List<Patient>
+  }
+
+  class AppointmentService {
+    -List<Appointment> appointments
+    -DoctorService doctorService
+    -PatientService patientService
+    +bookAppointment(String, String, LocalDateTime) : Appointment
+    +bookAppointmentByType(DoctorType, String, LocalDateTime) : Appointment
+    +getAllAppointments() : List<Appointment>
+  }
+}
+
+package "com.airtribe.meditrack.util" {
+  class Validator {
+    +{static} isValidEmail(String) : boolean
+    +{static} isValidContactNumber(String) : boolean
+    +{static} isValidMRN(String) : boolean
+    +{static} validateDoctor(Doctor) : void
+    +{static} validatePatient(Patient) : void
+  }
+
+  class DataStore<T> {
+    +{static} save(Collection<T>) : void
+    +{static} loadDoctors() : HashSet<Doctor>
+    +{static} loadPatients() : HashSet<Patient>
+  }
+
+  class AIHelper {
+      +{static} suggestDoctorType(String symptom) : DoctorType
+  }
+}
+
+package "com.airtribe.meditrack (Main)" {
+  class Main {
+    +{static} main(String[]) : void
+  }
+
+  class TestRunner {
+      +{static} main(String[]) : void
+  }
+}
+
+' --- Relationships ---
+
+' Inheritance
+Person <|-- Doctor
+Person <|-- Patient
+
+' Enum usage
+Doctor ..> DoctorType
+Appointment ..> AppointmentStatus
+
+' Service Dependencies
+AppointmentService --> DoctorService : uses
+AppointmentService --> PatientService : uses
+AppointmentService ..> Appointment : creates/manages
+DoctorService o-- Doctor : manages
+PatientService o-- Patient : manages
+
+' Utility Usage
+DoctorService ..> Validator : validates inputs
+PatientService ..> Validator : validates inputs
+DoctorService ..> DataStore : loads/saves
+PatientService ..> DataStore : loads/saves
+AppointmentService ..> AIHelper : symptom matching
+
+' Main execution
+Main ..> AppointmentService : orchestration
+Main ..> DoctorService : orchestration
+Main ..> PatientService : orchestration
+TestRunner ..> AppointmentService : tests
+@enduml

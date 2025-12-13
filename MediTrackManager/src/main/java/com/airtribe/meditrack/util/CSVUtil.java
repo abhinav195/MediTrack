@@ -29,28 +29,45 @@ public class CSVUtil {
     private static final String APPOINTMENT_CSV = RESOURCE_DIR + File.separator + "appointment_data.csv";
 
 
-    private static String getResourceDirectory() {
-        String classLocation = CSVUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-
-        Path classPath = Paths.get(classLocation).normalize();
-
-        Path projectRoot = classPath.getParent(); // Move up from 'classes' or 'target'
-        projectRoot = projectRoot.getParent(); // Move up to project root which is MediTrackManager
-
-        String final_path = projectRoot.toString() + File.separator + "src" + File.separator +
-                "main" + File.separator + "java" + File.separator + "com" + File.separator +
-                "airtribe" + File.separator + "meditrack" + File.separator + "resources";
+    public static String getResourceDirectory() {
+        // 1. Get the path where the code is running (e.g., target/classes)
         try {
-            Path resourcePath = Paths.get(final_path);
-            if (!Files.exists(resourcePath)) {
-                Files.createDirectories(resourcePath);
-            }
-        } catch (IOException e) {
-            System.err.println("Error creating resources directory: " + e.getMessage());
-        }
-        return final_path;
+            java.net.URI jarUri = CSVUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            Path classPath = Paths.get(jarUri).normalize();
 
+            // 2. Navigate UP to the 'MediTrackManager' root folder
+            // If running from IDE/Maven, classPath usually ends in 'target/classes' or just 'classes'
+            Path projectRoot = classPath;
+            while (projectRoot != null && !projectRoot.getFileName().toString().equals("MediTrackManager")) {
+                projectRoot = projectRoot.getParent();
+                // Safety check: if we hit root (null), stop
+                if (projectRoot == null) break;
+            }
+
+            // Fallback: If we couldn't find "MediTrackManager" in path (e.g. jar is renamed),
+            // assume we are 2 levels deep from root (standard maven: target/classes)
+            if (projectRoot == null) {
+                // Go up 2 levels from where the class is: classes -> target -> ROOT
+                projectRoot = Paths.get(jarUri).getParent().getParent();
+            }
+
+            // 3. Point to the "data" folder in the root
+            Path dataDir = projectRoot.resolve("data");
+
+            // 4. Ensure it exists (though it should, based on your screenshot)
+            if (!java.nio.file.Files.exists(dataDir)) {
+                System.out.println("[WARNING] Data directory not found at: " + dataDir.toAbsolutePath());
+                System.out.println("Creating it now...");
+                java.nio.file.Files.createDirectories(dataDir);
+            }
+
+            return dataDir.toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to resolve data directory path: " + e.getMessage(), e);
+        }
     }
+
 
     private static final String[] PATIENT_HEADERS = {
             "id", "name", "age", "address", "contactNumber", "email", "gender",

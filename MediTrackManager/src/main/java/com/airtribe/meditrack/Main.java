@@ -1,14 +1,19 @@
 package com.airtribe.meditrack;
 
 import com.airtribe.meditrack.entity.Appointment;
+import com.airtribe.meditrack.entity.Doctor;
+import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.enums.DoctorType;
 import com.airtribe.meditrack.service.AppointmentService;
 import com.airtribe.meditrack.service.DoctorService;
 import com.airtribe.meditrack.service.PatientService;
+import com.airtribe.meditrack.util.DataStore; // Import DataStore
 import com.airtribe.meditrack.util.SeedData;
 import com.airtribe.meditrack.util.Validator;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Scanner;
 
 public class Main {
@@ -17,12 +22,16 @@ public class Main {
     private static final PatientService patientService = new PatientService();
     private static final AppointmentService appointmentService = new AppointmentService(doctorService, patientService);
 
+    // DataStore instances for saving/loading
+    private static final DataStore<Doctor> doctorStore = new DataStore<>();
+    private static final DataStore<Patient> patientStore = new DataStore<>();
+    private static final DataStore<Appointment> appointmentStore = new DataStore<>();
+
     public static void main(String[] args) {
         System.out.println("Initializing MediTrack System...");
 
-        // 1. Load Seed Data
-        SeedData.load(doctorService, patientService);
-        System.out.println("Seed Data Loaded Successfully.");
+        // 1. INITIALIZE DATA (CSV with Seed Fallback)
+        initializeData();
 
         // 2. Main Menu Loop
         boolean running = true;
@@ -33,7 +42,7 @@ public class Main {
             System.out.println("3.  [BOOK]    Smart Booking (ID/Name/Symptom)");
             System.out.println("4.  [BOOK]    Auto-Match (Find Earliest by Type)");
             System.out.println("5.  [ADMIN]   View All Appointments");
-            System.out.println("6.  Exit");
+            System.out.println("6.  Exit & Save");
             System.out.print(">> Enter choice: ");
 
             try {
@@ -66,6 +75,7 @@ public class Main {
                         break;
                     case 6:
                         running = false;
+                        saveData(); // Save before exit
                         System.out.println("Exiting System. Goodbye!");
                         break;
                     default:
@@ -75,6 +85,49 @@ public class Main {
                 System.out.println("CRITICAL ERROR: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static void initializeData() {
+        try {
+            System.out.print("Loading data from CSV... ");
+
+            // Load from CSV
+            HashSet<Doctor> docs = DataStore.loadDoctors();
+            HashSet<Patient> pats = DataStore.loadPatients();
+            HashSet<Appointment> appts = DataStore.loadAppointments();
+
+            // Check if empty -> Use SeedData
+            if (docs.isEmpty() || pats.isEmpty()) {
+                System.out.println("CSV Empty or Missing. Loading Seed Data...");
+                SeedData.load(doctorService, patientService);
+
+                // Save Seed Data immediately to CSV so next run uses CSV
+                saveData();
+            } else {
+                // Populate Services with CSV Data
+                doctorService.setDoctors(docs);
+                patientService.setPatients(pats);
+                // Note: AppointmentService needs a method to set appointments if you want persistence there too
+                // appointmentService.setAppointments(appts); // You might need to add this method to AppointmentService
+                System.out.println("SUCCESS. Loaded " + docs.size() + " Doctors and " + pats.size() + " Patients from CSV.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading CSV: " + e.getMessage());
+            System.out.println("Falling back to Seed Data.");
+            SeedData.load(doctorService, patientService);
+        }
+    }
+
+    private static void saveData() {
+        try {
+            System.out.print("Saving data to CSV... ");
+            doctorStore.save(doctorService.getDoctors());
+            patientStore.save(patientService.getPatients());
+            // appointmentStore.save(new HashSet<>(appointmentService.getAllAppointments())); // Uncomment if you want to save appointments
+            System.out.println("DONE.");
+        } catch (IOException e) {
+            System.out.println("FAILED to save data: " + e.getMessage());
         }
     }
 
@@ -95,8 +148,7 @@ public class Main {
         try {
             LocalDateTime reqTime = null;
             if (Validator.isNonEmpty(timeStr)) {
-                // You need to implement parse in DateUtil or use LocalDateTime.parse
-                // For safety here, let's assume standard ISO or handle format
+                // Ideally use DateUtil.parse or similar
                 reqTime = LocalDateTime.parse(timeStr.replace(" ", "T"));
             }
 
@@ -104,6 +156,9 @@ public class Main {
             System.out.println("✅ SUCCESS! Appointment Confirmed: " + app.getAppointmentId());
             System.out.println("   Doctor: " + app.getDoctorId());
             System.out.println("   Time:   " + app.getTimeSlot());
+
+            // Auto-save after booking (Optional)
+            // saveData();
 
         } catch (Exception e) {
             System.out.println("❌ BOOKING FAILED: " + e.getMessage());
