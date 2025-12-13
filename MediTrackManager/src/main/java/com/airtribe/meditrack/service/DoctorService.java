@@ -49,6 +49,7 @@ public class DoctorService implements Searchable {
             doctor.setContactNumber(updatedDoctor.getContactNumber());
             doctor.setDoctorType(updatedDoctor.getDoctorType());
             doctor.setId(updatedDoctor.getId());
+            doctor.setConsultationFee(updatedDoctor.getConsultationFee());
         } else {
             throw new DoctorNotFoundException("Entity found is not a Doctor.");
         }

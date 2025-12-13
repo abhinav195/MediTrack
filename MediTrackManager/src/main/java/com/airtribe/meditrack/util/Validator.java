@@ -137,7 +137,7 @@ public class Validator {
     public static void validateBill(Bill bill) {
         if (!isValidId(bill.getBillId()))
             throw new InvalidDataException("Bill ID cannot be empty");
-        if (!isValidId(bill.getAppointmentId()))
+        if (bill.getAppointment() == null || !isValidId(bill.getAppointment().getAppointmentId()))
             throw new InvalidDataException("Appointment ID cannot be empty");
         if (!isValidAmount(bill.getConsultationFee()))
             throw new InvalidDataException("Consultation fee cannot be negative");
@@ -145,7 +145,8 @@ public class Validator {
             throw new InvalidDataException("Medication cost cannot be negative");
         if (!isValidTaxRate(bill.getTaxRate()))
             throw new InvalidDataException("Tax rate must be between 0 and 50");
-        if (!isValidAmount(bill.calculateTotal()))
+        if (!isValidAmount(bill.getTotalAmount()))
             throw new InvalidDataException("Total amount cannot be negative");
     }
+
 }

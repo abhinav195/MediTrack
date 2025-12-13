@@ -25,6 +25,7 @@ public class Doctor extends Person {
     private String opdRoom;
     private LocalTime availableFrom;
     private LocalTime availableTo;
+    private double consultationFee;
 
     @lombok.Builder.Default
     private List<DayOfWeek> availableDays = Arrays.asList(

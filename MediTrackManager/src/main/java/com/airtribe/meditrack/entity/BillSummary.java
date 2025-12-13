@@ -1,9 +1,9 @@
 package com.airtribe.meditrack.entity;
 
+import com.airtribe.meditrack.enums.PaymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -24,21 +24,24 @@ public final class BillSummary {
     private final LocalDateTime generatedDate;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final String doctorName;
+    private final PaymentType paymentType;
 
-    // Custom toString for nice printing
-    @Override
-    public String toString() {
-        return String.format(
-                "=== BILL SUMMARY ===\n" +
-                        "ID: %s\n" +
-                        "Patient: %s\n" +
-                        "Appt ID: %s\n" +
-                        "Fees: %.2f | Meds: %.2f | Tax: %.1f%%\n" +
-                        "TOTAL: %.2f\n" +
-                        "Status: %s\n" +
-                        "Date: %s",
-                billId, patientName, appointmentId, consultationFee, medicationCost,
-                taxRate * 100, totalAmount, isPaid ? "PAID" : "UNPAID", generatedDate
-        );
+    public void printBillSummary() {
+        String divider = "----------------------------------------";
+
+        String summary =
+                divider + "\n" +
+                        "              BILL SUMMARY\n" +
+                        divider + "\n" +
+                        " Bill ID       : " + billId + "\n" +
+                        " Patient Name  : " + patientName + "\n" +
+                        "doctor Name    : " + doctorName + "\n" +
+                        " Generated On  : " + generatedDate + "\n" +
+                        "Payment Type: "    + paymentType + "\n" +
+                        " Total Amount  : ₹ " + String.format("%.2f", totalAmount) + "\n" +
+                        divider;
+
+        System.out.println(summary);
     }
 }
