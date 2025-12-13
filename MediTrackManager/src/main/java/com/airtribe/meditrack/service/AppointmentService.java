@@ -16,16 +16,17 @@ import com.airtribe.meditrack.util.Validator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class AppointmentService {
-    private List<Appointment> appointments;
+    private HashSet<Appointment> appointments;
     private final DoctorService doctorService;
     private final PatientService patientService;
     public AppointmentService(DoctorService doctorService, PatientService patientService) {
         this.doctorService = doctorService;
         this.patientService = patientService;
-        this.appointments = new ArrayList<>();
+        this.appointments = new HashSet<>();
     }
     public Appointment bookAppointment(String doctorIdentifierOrSymptom, String patientId, LocalDateTime requestedTime) throws Exception {
         // Validate patientId
@@ -157,5 +158,12 @@ public class AppointmentService {
             throw new InvalidDataException("AI-suggested appointment slot is invalid or in the past");
         }
         return slot;
+    }
+
+    public void setAppointments(HashSet<Appointment> appts) {
+        for (Appointment appointment : appts) {
+            Validator.validateAppointment(appointment);
+        }
+        this.appointments = appts;
     }
 }

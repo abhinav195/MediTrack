@@ -11,6 +11,8 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+<!--        <maven.compiler.source>24</maven.compiler.source>-->
+<!--        <maven.compiler.target>24</maven.compiler.target>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -37,6 +39,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.32</version>
+<!--        <version>1.18.42</version>--> <!--For JAVA 24-->
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -56,11 +59,14 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+<!--                    <source>24</source>-->
+<!--                    <target>24</target>-->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>1.18.32</version>
+<!--                            <version>1.18.42</version>--> <!--For JAVA 24-->
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

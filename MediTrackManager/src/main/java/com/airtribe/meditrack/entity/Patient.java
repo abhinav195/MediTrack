@@ -2,6 +2,7 @@ package com.airtribe.meditrack.entity;
 
 import com.airtribe.meditrack.enums.GENDER;
 import com.airtribe.meditrack.util.IdGenerator;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +17,8 @@ import java.util.List;
 @NoArgsConstructor
 public class Patient extends Person {
 
-    private String mrn;
+    @Builder.Default
+    private String mrn= IdGenerator.generateMRN();
     private String emergencyContact;
     private String bloodGroup;
     private List<String> knownAllergies;
@@ -32,8 +34,6 @@ public class Patient extends Person {
         this.setContactNumber(contactNumber);
         this.setEmail(email);
         this.setGender(gender);
-
-        this.mrn = IdGenerator.generateId();
         this.bloodGroup = bloodGroup;
         this.emergencyContact = emergencyContact;
         this.knownAllergies = new ArrayList<>();

@@ -19,7 +19,7 @@ public abstract class Person implements Serializable {
 
     // Centralized ID for all People (Doctors and Patients)
     @lombok.Builder.Default
-    private String id = IdGenerator.generateId();
+    private String id = IdGenerator.generateMRN();
 
     private String name;
     private int age;

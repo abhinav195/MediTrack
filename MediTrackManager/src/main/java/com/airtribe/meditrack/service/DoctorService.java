@@ -2,6 +2,7 @@ package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Person;
 import com.airtribe.meditrack.enums.DoctorType;
+import com.airtribe.meditrack.enums.GENDER;
 import com.airtribe.meditrack.util.Validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import static com.airtribe.meditrack.constants.Constants.SLOT_DURATION_MINUTES;
@@ -102,5 +104,78 @@ public class DoctorService implements Searchable {
                 return doctor;
         }
         throw new DoctorNotFoundException("Doctor with id: " + id + " does not exist");
+    }
+
+
+    public Doctor createDoctorInteractive(Scanner scanner) {
+        System.out.print("Enter Doctor Name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter Age: ");
+        int age = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Enter Address: ");
+        String address = scanner.nextLine();
+
+        System.out.print("Enter Contact Number: ");
+        String contactNumber = scanner.nextLine();
+
+        System.out.print("Enter Email: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Enter Gender (MALE/FEMALE): ");
+        String genderStr = scanner.nextLine().toUpperCase();
+        GENDER gender = GENDER.valueOf(genderStr);
+
+        System.out.print("Available Doctor Types: ");
+        System.out.println(java.util.Arrays.toString(DoctorType.values()));
+        System.out.print("Enter Doctor Type: ");
+        String typeStr = scanner.nextLine().toUpperCase();
+        DoctorType doctorType = DoctorType.valueOf(typeStr);
+
+        System.out.print("Enter Qualification (e.g., MBBS, MD): ");
+        String qualification = scanner.nextLine();
+
+        System.out.print("Enter Years of Experience: ");
+        int yearsOfExperience = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Enter OPD Room Number: ");
+        String opdRoom = scanner.nextLine();
+
+        System.out.print("Enter Consultation Fee: ");
+        double consultationFee = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.print("Enter Available From Time (HH:mm, e.g., 09:00): ");
+        String fromStr = scanner.nextLine();
+        LocalTime availableFrom = LocalTime.parse(fromStr);
+
+        System.out.print("Enter Available To Time (HH:mm, e.g., 17:00): ");
+        String toStr = scanner.nextLine();
+        LocalTime availableTo = LocalTime.parse(toStr);
+
+        // Create Doctor
+        Doctor doctor = Doctor.builder()
+                .name(name)
+                .age(age)
+                .address(address)
+                .contactNumber(contactNumber)
+                .email(email)
+                .gender(gender)
+                .doctorType(doctorType)
+                .qualification(qualification)
+                .yearsOfExperience(yearsOfExperience)
+                .opdRoom(opdRoom)
+                .consultationFee(consultationFee)
+                .availableFrom(availableFrom)
+                .availableTo(availableTo)
+                .build();
+
+        // Add to service
+        this.addDoctor(doctor);
+
+        return doctor;
     }
 }

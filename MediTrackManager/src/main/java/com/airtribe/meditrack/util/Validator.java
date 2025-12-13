@@ -85,12 +85,12 @@ public class Validator {
         Set<String> validGroups = Set.of("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-");
         if (!validGroups.contains(p.getBloodGroup()))
             throw new InvalidDataException("Invalid blood group");
-        if (!isValidList(p.getKnownAllergies()))
-            throw new InvalidDataException("Known allergies cannot be null or contain empty values");
-        if (!isValidList(p.getChronicConditions()))
-            throw new InvalidDataException("Chronic conditions cannot be null or contain empty values");
-        if (!isValidList(p.getCurrentMedications()))
-            throw new InvalidDataException("Medication list cannot be null or contain empty values");
+//        if (!isValidList(p.getKnownAllergies()))
+//            throw new InvalidDataException("Known allergies cannot be null or contain empty values");
+//        if (!isValidList(p.getChronicConditions()))
+//            throw new InvalidDataException("Chronic conditions cannot be null or contain empty values");
+//        if (!isValidList(p.getCurrentMedications()))
+//            throw new InvalidDataException("Medication list cannot be null or contain empty values");
     }
 
     // DOCTOR VALIDATION

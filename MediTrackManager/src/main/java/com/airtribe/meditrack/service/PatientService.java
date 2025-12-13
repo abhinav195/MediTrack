@@ -1,6 +1,7 @@
 package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Person;
+import com.airtribe.meditrack.enums.GENDER;
 import com.airtribe.meditrack.exception.InvalidDataException;
 import com.airtribe.meditrack.util.Validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,6 +11,7 @@ import com.airtribe.meditrack.exception.PatientNotFoundException;
 import com.airtribe.meditrack.interfaces.Searchable;
 
 import java.util.HashSet;
+import java.util.Scanner;
 
 public class PatientService implements Searchable {
     HashSet<Patient> Patients;
@@ -88,5 +90,51 @@ public class PatientService implements Searchable {
             }
         }
         throw new PatientNotFoundException("Patient with MRN: " + mrnId + " does not exist");
+    }
+
+
+    public Patient createPatientInteractive(Scanner scanner) {
+        System.out.print("Enter Patient Name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter Age: ");
+        int age = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Enter Address: ");
+        String address = scanner.nextLine();
+
+        System.out.print("Enter Contact Number: ");
+        String contactNumber = scanner.nextLine();
+
+        System.out.print("Enter Email: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Enter Gender (MALE/FEMALE): ");
+        String genderStr = scanner.nextLine().toUpperCase();
+        GENDER gender = GENDER.valueOf(genderStr);
+
+        System.out.print("Enter Blood Group (e.g., O+, A-, B+, AB-): ");
+        String bloodGroup = scanner.nextLine();
+
+        System.out.print("Enter Emergency Contact: ");
+        String emergencyContact = scanner.nextLine();
+
+        // Create Patient using Lombok builder
+        Patient patient = Patient.builder()
+                .name(name)
+                .age(age)
+                .address(address)
+                .contactNumber(contactNumber)
+                .email(email)
+                .gender(gender)
+                .bloodGroup(bloodGroup)
+                .emergencyContact(emergencyContact)
+                .build();
+
+        // Add to service
+        this.addPatient(patient);
+
+        return patient;
     }
 }

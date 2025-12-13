@@ -4,6 +4,7 @@ import com.airtribe.meditrack.entity.Appointment;
 import com.airtribe.meditrack.entity.Doctor;
 import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.enums.DoctorType;
+import com.airtribe.meditrack.enums.GENDER;
 import com.airtribe.meditrack.service.AppointmentService;
 import com.airtribe.meditrack.service.DoctorService;
 import com.airtribe.meditrack.service.PatientService;
@@ -13,6 +14,7 @@ import com.airtribe.meditrack.util.Validator;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -38,11 +40,13 @@ public class Main {
         while (running) {
             System.out.println("\n=== MediTrack Management System ===");
             System.out.println("1.  [PATIENT] View All Patients");
-            System.out.println("2.  [DOCTOR]  View All Doctors");
-            System.out.println("3.  [BOOK]    Smart Booking (ID/Name/Symptom)");
-            System.out.println("4.  [BOOK]    Auto-Match (Find Earliest by Type)");
-            System.out.println("5.  [ADMIN]   View All Appointments");
-            System.out.println("6.  Exit & Save");
+            System.out.println("2.  [PATIENT] Create New Patient");
+            System.out.println("3.  [DOCTOR]  View All Doctors");
+            System.out.println("4.  [DOCTOR]  Create New Doctor");
+            System.out.println("5.  [BOOK]    Smart Booking (ID/Name/Symptom)");
+            System.out.println("6.  [BOOK]    Auto-Match (Find Earliest by Type)");
+            System.out.println("7.  [ADMIN]   View All Appointments");
+            System.out.println("8.  Exit & Save");
             System.out.print(">> Enter choice: ");
 
             try {
@@ -60,26 +64,32 @@ public class Main {
                         patientService.getPatients().forEach(p -> System.out.println(p.getName() + " (MRN: " + p.getMrn() + ")"));
                         break;
                     case 2:
+                        handleCreatePatient();
+                        break;
+                    case 3:
                         printHeader("ALL DOCTORS");
                         doctorService.getDoctors().forEach(d -> System.out.println(d.getName() + " [" + d.getDoctorType() + "] ID: " + d.getId()));
                         break;
-                    case 3:
-                        handleSmartBooking();
-                        break;
                     case 4:
-                        handleAutoMatchBooking();
+                        handleCreateDoctor();
                         break;
                     case 5:
+                        handleSmartBooking();
+                        break;
+                    case 6:
+                        handleAutoMatchBooking();
+                        break;
+                    case 7:
                         printHeader("APPOINTMENTS");
                         appointmentService.getAllAppointments().forEach(System.out::println);
                         break;
-                    case 6:
+                    case 8:
                         running = false;
                         saveData(); // Save before exit
                         System.out.println("Exiting System. Goodbye!");
                         break;
                     default:
-                        System.out.println("Invalid choice. Try 1-6.");
+                        System.out.println("Invalid choice. Try 1-8.");
                 }
             } catch (Exception e) {
                 System.out.println("CRITICAL ERROR: " + e.getMessage());
@@ -97,19 +107,15 @@ public class Main {
             HashSet<Patient> pats = DataStore.loadPatients();
             HashSet<Appointment> appts = DataStore.loadAppointments();
 
-            // Check if empty -> Use SeedData
             if (docs.isEmpty() || pats.isEmpty()) {
                 System.out.println("CSV Empty or Missing. Loading Seed Data...");
                 SeedData.load(doctorService, patientService);
 
-                // Save Seed Data immediately to CSV so next run uses CSV
                 saveData();
             } else {
-                // Populate Services with CSV Data
                 doctorService.setDoctors(docs);
                 patientService.setPatients(pats);
-                // Note: AppointmentService needs a method to set appointments if you want persistence there too
-                // appointmentService.setAppointments(appts); // You might need to add this method to AppointmentService
+                appointmentService.setAppointments(appts);
                 System.out.println("SUCCESS. Loaded " + docs.size() + " Doctors and " + pats.size() + " Patients from CSV.");
             }
         } catch (IOException e) {
@@ -173,7 +179,11 @@ public class Main {
         System.out.print("Enter Patient MRN: ");
         String patId = scanner.nextLine();
 
-        System.out.println("Available Types: CARDIOLOGIST, DERMATOLOGIST, GENERAL_PRACTITIONER, etc.");
+        System.out.print("Available Doctor types are: ");
+        System.out.println(doctorService.getDoctors().stream()
+                .map(Doctor::getDoctorType)
+                .distinct()
+                .toList());
         System.out.print("Enter Specialist Type: ");
         String typeStr = scanner.nextLine().toUpperCase();
 
@@ -188,6 +198,49 @@ public class Main {
             System.out.println("❌ Invalid Doctor Type entered.");
         } catch (Exception e) {
             System.out.println("❌ BOOKING FAILED: " + e.getMessage());
+        }
+    }
+
+    // --- Create Patient ---
+    private static void handleCreatePatient() {
+        printHeader("CREATE NEW PATIENT");
+        try {
+            Patient patient = patientService.createPatientInteractive(scanner);
+            patientStore.save(patientService.getPatients());
+            System.out.println("✅ PATIENT CREATED SUCCESSFULLY!");
+            System.out.println("   Name: " + patient.getName());
+            System.out.println("   MRN: " + patient.getMrn());
+            System.out.println("   Age: " + patient.getAge());
+            System.out.println("   Blood Group: " + patient.getBloodGroup());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ Invalid input. Please check Gender format (MALE/FEMALE)");
+        } catch (Exception e) {
+            System.out.println("❌ PATIENT CREATION FAILED: " + e.getMessage());
+        }
+    }
+
+    // --- Create Doctor ---
+    private static void handleCreateDoctor() {
+        printHeader("CREATE NEW DOCTOR");
+        try {
+            Doctor doctor = doctorService.createDoctorInteractive(scanner);
+            doctorStore.save(doctorService.getDoctors());
+
+            System.out.println("✅ DOCTOR CREATED SUCCESSFULLY!");
+            System.out.println("   Name: " + doctor.getName());
+            System.out.println("   ID: " + doctor.getId());
+            System.out.println("   Type: " + doctor.getDoctorType());
+            System.out.println("   Qualification: " + doctor.getQualification());
+            System.out.println("   Experience: " + doctor.getYearsOfExperience() + " years");
+            System.out.println("   Available: " + doctor.getAvailableFrom() + " - " + doctor.getAvailableTo());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ Invalid input. Please check Doctor Type or Gender format.");
+            System.out.println("   Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ DOCTOR CREATION FAILED: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

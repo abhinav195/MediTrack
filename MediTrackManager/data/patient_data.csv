@@ -1,3 +1,0 @@
-id,name,age,address,contactNumber,email,gender,mrn,emergencyContact,bloodGroup,knownAllergies,chronicConditions,currentMedications
-P001,Tony Stark,40,Malibu Point,9876543210,ironman@avengers.com,MALE,MRN001,1122334455,A+,Shrapnel,Anxiety,None
-P002,Natasha Romanoff,32,Unknown,9876543211,widow@avengers.com,FEMALE,MRN002,1122334466,O+,None,None,None

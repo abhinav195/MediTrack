@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -89,7 +90,7 @@ public class CSVUtil {
 
     public static void writePatientsToCSV(List<Patient> patients) throws IOException {
         Path path = Paths.get(PATIENT_CSV);
-        try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
+        try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(PATIENT_HEADERS))) {
 
             for (Patient patient : patients) {
